@@ -1,10 +1,12 @@
 import { Job } from "../models/job.model.js";
+import { User } from "../models/user.model.js";
 
 // admin post krega job
 export const postJob = async (req, res) => {
     try {
         const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
-        const userId = req.id;
+        const userId = req.id; // Recruiter ID from authentication middleware
+
 
         if (!title || !description || !requirements || !salary || !location || !jobType || !experience || !position || !companyId) {
             return res.status(400).json({
@@ -12,6 +14,24 @@ export const postJob = async (req, res) => {
                 success: false
             })
         };
+           const recruiter = await User.findById(userId);
+
+           if (!recruiter || recruiter.role !== 'recruiter') {
+               return res.status(403).json({ message: "Unauthorized", success: false });
+           }
+   
+           // Check if the job post count needs to be reset
+           const currentDate = new Date();
+           if (currentDate >= recruiter.jobPostResetDate) {
+               recruiter.jobPostCount = 0; // Reset count
+               recruiter.jobPostResetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1); // Set next reset date
+               await recruiter.save();
+           }
+   
+           // Check if the recruiter has reached their monthly job posting limit
+           if (recruiter.jobPostCount >= 8) {
+               return res.status(400).json({ message: "Job posting limit reached for this month!", success: false });
+           }
         const job = await Job.create({
             title,
             description,
@@ -85,7 +105,8 @@ export const getAdminJobs = async (req, res) => {
         const adminId = req.id;
         const jobs = await Job.find({ created_by: adminId }).populate({
             path:'company',
-            createdAt:-1
+            options: { sort: { createdAt: -1 } }
+           // createdAt:-1
         });
         if (!jobs) {
             return res.status(404).json({
@@ -93,11 +114,25 @@ export const getAdminJobs = async (req, res) => {
                 success: false
             })
         };
+        const recruiter = await User.findById(adminId);
+
+        if (!recruiter) {
+            return res.status(404).json({
+                message: "Recruiter not found.",
+                success: false
+            });
+        }
         return res.status(200).json({
             jobs,
+            jobPostCount: recruiter.jobPostCount, // Current job post count
+            jobPostResetDate: recruiter.jobPostResetDate, 
             success: true
         })
     } catch (error) {
         console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
     }
 }

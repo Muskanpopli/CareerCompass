@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema({
             default:""
         }
     },
+    jobPostCount: {
+        type: Number,
+        default: 0 // Initial job post count
+    },
+    jobPostResetDate: {
+        type: Date, // Date when the job post count will reset
+        default: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1) // First day of the next month
+    }
 
 },{timestamps:true});
 
