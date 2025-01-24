@@ -15,7 +15,6 @@ const app = express();  //express call
 
 const __dirname = path.resolve();
 
-
 //middleware 
 
 app.use(express.json());
@@ -23,10 +22,11 @@ app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 
 const corsOptions = {
-    origin: 'https://jobportal-fas2.onrender.com' ,
+    origin:[ 'https://jobportal-fas2.onrender.com' ,'http://localhost:5173'],
     credentials: true
 }
 app.use(cors(corsOptions));
+
 
 const port = process.env.PORT || 3000;
 

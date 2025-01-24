@@ -27,6 +27,7 @@ const PostJob = () => {
         companyId: ""
     });
     const [loading, setLoading]= useState(false);
+    const [limitReached, setLimitReached] = useState(false);
     const navigate = useNavigate();
 
     const { companies } = useSelector(store => store.company);
@@ -54,7 +55,12 @@ const PostJob = () => {
                 navigate("/admin/jobs");
             }
         } catch (error) {
-            toast.error(error.response.data.message);
+            if (error.response?.data?.limitReached) {
+                setLimitReached(true);
+                toast.error("Job posting limit reached. Cannot create more jobs.");
+            } else {
+                toast.error(error.response?.data?.message || "An error occurred.");
+            }
         } finally{
             setLoading(false);
         }
@@ -168,12 +174,31 @@ const PostJob = () => {
                             )
                         }
                     </div> 
-                    {
+                    {loading ? (
+                        <Button className="w-full my-4" disabled>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
+                        </Button>
+                    ) : (
+                        <Button type="submit" className="w-full my-4" disabled={limitReached}>
+                            Post New Job
+                        </Button>
+                    )}
+                    {limitReached && (
+                        <p className="text-xs text-red-600 font-bold text-center my-3">
+                            *Job posting limit reached. Please contact support for more slots.
+                        </p>
+                    )}
+                    {companies.length === 0 && (
+                        <p className="text-xs text-red-600 font-bold text-center my-3">
+                            *Please register a company first, before posting a job.
+                        </p>
+                    )}
+                    {/* {
                         loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4">Post New Job</Button>
                     }
                     {
                         companies.length === 0 && <p className='text-xs text-red-600 font-bold text-center my-3'>*Please register a company first, before posting a jobs</p>
-                    }
+                    } */}
                 </form>
             </div>
         </div>
