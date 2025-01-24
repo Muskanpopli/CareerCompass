@@ -29,9 +29,6 @@ const HeroSection = () => {
                         className='outline-none border-none w-full'
 
                     />
-                    {/* <Button onClick={searchJobHandler} className="rounded-r-full bg-[#6A38C2]">
-                        <Search className='h-5 w-5' />
-                    </Button> */}
                     <Button  className="rounded-r-full bg-[#6A38C2]">
                         <Search className='h-5 w-5' />
                     </Button>
